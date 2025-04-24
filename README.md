@@ -1,94 +1,168 @@
-# Obsidian Sample Plugin
+# ![Work Log Plugin Banner](banner.png) Work Log Plugin for Obsidian
 
-This is a sample plugin for Obsidian (https://obsidian.md).
 
-This project uses TypeScript to provide type checking and documentation.
-The repo depends on the latest plugin API (obsidian.d.ts) in TypeScript Definition format, which contains TSDoc comments describing what it does.
 
-This sample plugin demonstrates some of the basic functionality the plugin API can do.
-- Adds a ribbon icon, which shows a Notice when clicked.
-- Adds a command "Open Sample Modal" which opens a Modal.
-- Adds a plugin setting tab to the settings page.
-- Registers a global click event and output 'click' to the console.
-- Registers a global interval which logs 'setInterval' to the console.
+## What is a Work Log?
 
-## First time developing plugins?
+First and most important thing, a work log is not a to-do list. A worklog is a chronological record of completed tasks and accomplishments - not to be confused with a todo list. While todo lists focus on what you plan to do, work logs document what you've already done.
+They serve as a personal changelog of your professional activities and achievements.
 
-Quick starting guide for new plugin devs:
+## Why Maintain a Work Log?
+- Memory Aid: Easily recall what you worked on days, weeks, or months ago
+- Status Updates: Have ready material for standups, meetings, and progress reports
+- Performance Reviews: Maintain a complete record of your accomplishments for self-evaluations
+- Personal Growth: Track your professional development and learning over time
+- Visibility: Document your contributions to make your work visible to others
 
-- Check if [someone already developed a plugin for what you want](https://obsidian.md/plugins)! There might be an existing plugin similar enough that you can partner up with.
-- Make a copy of this repo as a template with the "Use this template" button (login to GitHub if you don't see it).
-- Clone your repo to a local development folder. For convenience, you can place this folder in your `.obsidian/plugins/your-plugin-name` folder.
-- Install NodeJS, then run `npm i` in the command line under your repo folder.
-- Run `npm run dev` to compile your plugin from `main.ts` to `main.js`.
-- Make changes to `main.ts` (or create new `.ts` files). Those changes should be automatically compiled into `main.js`.
-- Reload Obsidian to load the new version of your plugin.
-- Enable plugin in settings window.
-- For updates to the Obsidian API run `npm update` in the command line under your repo folder.
+As Julia Evans notes in her ["brag documents"](https://jvns.ca/blog/brag-documents/) (this is actually what got me started a few years ago), keeping track of your work helps ensure your contributions are recognized and remembered. Similarly, as described in [Keep a Changelog at Work](https://code.dblock.org/2020/09/01/keep-a-changelog-at-work.html), a regular work log practice helps build a narrative of your professional journey.
 
-## Releasing new releases
+Aside from these, the primary benefit of maintaining worklogs has been tracking my own progress, especially during periods of discouragement. Additionally, they help me understand what my time, focus, and energy were spent on, and help me see the general direction I've naturally drifted over time.
 
-- Update your `manifest.json` with your new version number, such as `1.0.1`, and the minimum Obsidian version required for your latest release.
-- Update your `versions.json` file with `"new-plugin-version": "minimum-obsidian-version"` so older versions of Obsidian can download an older version of your plugin that's compatible.
-- Create new GitHub release using your new version number as the "Tag version". Use the exact version number, don't include a prefix `v`. See here for an example: https://github.com/obsidianmd/obsidian-sample-plugin/releases
-- Upload the files `manifest.json`, `main.js`, `styles.css` as binary attachments. Note: The manifest.json file must be in two places, first the root path of your repository and also in the release.
-- Publish the release.
+The Work Log plugin for Obsidian automates the maintenance of these valuable records by automatically managing daily work logs and adding formatted date headers to your notes.
 
-> You can simplify the version bump process by running `npm version patch`, `npm version minor` or `npm version major` after updating `minAppVersion` manually in `manifest.json`.
-> The command will bump version in `manifest.json` and `package.json`, and add the entry for the new version to `versions.json`
+### Example of a worklog
+```
+#worklog
 
-## Adding your plugin to the community plugin list
+### Monday 2025-01-06
+- Fixed critical auth bypass vulnerability in JWT validation (CVE-2025-4721)
+- Mentored junior security engineer on secure coding practices and code review
+- Finished zero-trust architecture proposal for legacy systems
+- Presented quarterly security metrics to executive leadership
+- Helped colleague debug OAuth integration [issue](jira-link)
+----
 
-- Check the [plugin guidelines](https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines).
-- Publish an initial version.
-- Make sure you have a `README.md` file in the root of your repo.
-- Make a pull request at https://github.com/obsidianmd/obsidian-releases to add your plugin.
+### Tuesday 2025-01-07
+- Conducted threat modeling session for new payment processing service
+- Refined architectural decision records (ADR-316) for our authentication system
+- Simplified the authorization model for the Viewer role
+- Met with CISO to discuss security strategy alignment with business goals [notes](link-to-notes)
+- Researched zero-knowledge proof implementations for privacy enhancement
+- Created a new 4-week lifting program for myself 
 
-## How to use
-
-- Clone this repo.
-- Make sure your NodeJS is at least v16 (`node --version`).
-- `npm i` or `yarn` to install dependencies.
-- `npm run dev` to start compilation in watch mode.
-
-## Manually installing the plugin
-
-- Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/your-plugin-id/`.
-
-## Improve code quality with eslint (optional)
-- [ESLint](https://eslint.org/) is a tool that analyzes your code to quickly find problems. You can run ESLint against your plugin to find common bugs and ways to improve your code. 
-- To use eslint with this project, make sure to install eslint from terminal:
-  - `npm install -g eslint`
-- To use eslint to analyze this project use this command:
-  - `eslint main.ts`
-  - eslint will then create a report with suggestions for code improvement by file and line number.
-- If your source code is in a folder, such as `src`, you can use eslint with this command to analyze all files in that folder:
-  - `eslint .\src\`
-
-## Funding URL
-
-You can include funding URLs where people who use your plugin can financially support it.
-
-The simple way is to set the `fundingUrl` field to your link in your `manifest.json` file:
-
-```json
-{
-    "fundingUrl": "https://buymeacoffee.com"
-}
+---
+(previous days)
 ```
 
-If you have multiple URLs, you can also do:
+## Why?
+I was maintaining a few worklogs, and manually added the date at the top every day.
+It got tedious, so I created this plugin for myself, then a friend told me I should share it with the community.
 
-```json
-{
-    "fundingUrl": {
-        "Buy Me a Coffee": "https://buymeacoffee.com",
-        "GitHub Sponsor": "https://github.com/sponsors",
-        "Patreon": "https://www.patreon.com/"
-    }
-}
+## Features
+
+- **Automatic Date Headers**: Automatically adds today's date as a header when opening worklog files
+- **Multiple Worklogs**: Flexibility to have multiple worklogs (one per project) or maintain one centralized worklog—your call.
+- **Customizable Date Format**: Configure how dates appear in your logs (e.g., "Monday 2023-05-01")
+- **Smart File Detection**: Identifies worklog files by name, path, or tags
+- **Cursor Positioning**: Automatically positions your cursor at the right spot to start typing
+- **Manual Commands**: Add date headers manually when needed
+- **No Duplicates**: Avoids adding duplicate date entries (unless forced)
+
+## Installation
+
+### From Obsidian Community Plugins
+
+1. Open Obsidian and go to Settings
+2. Navigate to "Community plugins" and disable "Safe mode" if enabled
+3. Click "Browse" and search for "Work Log"
+4. Click "Install" and then "Enable"
+
+### Manual Installation
+
+1. Clone the repo `{vault}/.obsidian/plugins/worklog/`
+2. Restart Obsidian and enable the plugin in Settings > Community plugins
+
+## Usage
+
+### Automatic Mode
+
+By default, the plugin automatically adds today's date to your worklog files when you open them. A worklog file is identified by:
+
+1. Having the filename `worklog.md` (case-insensitive)
+2. Being listed in the "Target Files" setting
+3. Containing the worklog tag (default: `#worklog`) in frontmatter or inline
+
+When you open a worklog file, the plugin will:
+- Check if today's date is already in the file
+- If not, add it at the top of the file (or after tags if present)
+- Position your cursor after the date, ready for you to start typing
+
+### Manual Commands
+
+The plugin adds two commands that you can use with Obsidian's command palette (Ctrl/Cmd+P):
+
+- **Insert Today's Date**: Adds today's date if it's not already in the file
+- **Force Insert Today's Date**: Adds today's date even if it's already in the file
+
+### Example Output
+
+When the plugin adds a date to your file, it creates a structure like this:
+
+```markdown
+#worklog
+
+### Monday 2023-05-01
+- <Your Cursor Here>
+
+----
+
+(previous content)
 ```
 
-## API Documentation
+## Settings
 
-See https://github.com/obsidianmd/obsidian-api
+The plugin offers several settings to customize its behavior:
+
+### Auto-add Date
+
+- **Default**: Enabled
+- **Description**: Automatically adds today's date when opening a worklog file
+- **Usage**: Disable this if you prefer to add dates manually using commands
+
+### Date Format
+
+- **Default**: `dddd YYYY-MM-DD`
+- **Description**: Format for date headers
+- **Tokens**:
+	- `YYYY`: Four-digit year (e.g., 2023)
+	- `MM`: Two-digit month (e.g., 05)
+	- `DD`: Two-digit day (e.g., 01)
+	- `dddd`: Full day name (e.g., Monday)
+- **Examples**:
+	- `dddd DD-MM-YYYY` → Monday 01-05-2023
+	- `YYYY-MM-DD dddd` → 2023-05-01 Monday
+	- `MM/DD/YYYY` → 05/01/2023
+
+### Worklog Tag
+
+- **Default**: `#worklog`
+- **Description**: Files with this tag will be treated as work logs
+- **Usage**: Change this if you want to use a different tag to identify worklog files
+
+### Target Files
+
+- **Default**: Empty (no target files)
+- **Description**: Files to be treated as work logs (one path per line)
+- **Usage**: Add file paths (relative to vault root) to automatically treat them as worklog files
+
+### Default Worklog Filename
+
+- **Default**: `worklog.md`
+- **Description**: Files with this name (case insensitive) will be treated as work logs
+- **Note**: This setting is not exposed in the UI but can be modified in the data.json file
+
+## Troubleshooting
+
+- **Date Not Adding**: Make sure the file is recognized as a worklog file (check name, path, or tags)
+- **Wrong Date Format**: Verify your date format setting and adjust as needed
+- **Cursor Not Positioning**: Ensure your file structure matches the expected format
+
+## License
+
+This plugin is licensed under the MIT License. See the LICENSE file for details.
+
+## Support and Contribution
+
+- Report issues on the [GitHub repository](https://github.com/samyghannad/obsidian-worklog/issues)
+- Contribute to the development by submitting pull requests
+

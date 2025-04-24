@@ -1,31 +1,33 @@
-import { Plugin, PluginSettingTab, App, Setting, MarkdownView, TFile } from 'obsidian';
+'use strict';
+
+const obsidian = require('obsidian');
 
 /**
  * Settings for the Work Log plugin
  */
 class WorkLogSettings {
-	targetFiles: string[] = []; // Array of file paths
-	worklogTag = "#worklog"; // default worklog file tag
-	autoAddDate = true; // Auto-add date feature toggle
-	dateFormat = "dddd YYYY-MM-DD"; // Default date format
-	defaultWorklogFilename = 'worklog.md'; // case-insensitive
+	constructor() {
+		this.targetFiles = []; // Array of file paths
+		this.worklogTag = "#worklog"; // default worklog file tag
+		this.autoAddDate = true; // Auto-add date feature toggle
+		this.dateFormat = "dddd YYYY-MM-DD"; // Default date format
+		this.defaultWorklogFilename = 'worklog.md'; // case insensitive
+	}
 }
 
-class WorkLogSettingsTab extends PluginSettingTab {
-	plugin: WorkLogPlugin;
-
-	constructor(app: App, plugin: WorkLogPlugin) {
+class WorkLogSettingsTab extends obsidian.PluginSettingTab {
+	constructor(app, plugin) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
 
-	display(): void {
+	display() {
 		const {containerEl} = this;
 		containerEl.empty();
 
 		containerEl.createEl('h2', {text: 'Worklog Settings'});
 
-		new Setting(containerEl)
+		new obsidian.Setting(containerEl)
 			.setName('Auto-add Date')
 			.setDesc('Automatically add today\'s date when opening a worklog file')
 			.addToggle(toggle => toggle
@@ -35,7 +37,7 @@ class WorkLogSettingsTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				}));
 
-		new Setting(containerEl)
+		new obsidian.Setting(containerEl)
 			.setName('Date Format')
 			.setDesc('Format for date headers. Use: YYYY (year), MM (month), DD (day), dddd (day name)')
 			.addText(text => text
@@ -52,7 +54,7 @@ class WorkLogSettingsTab extends PluginSettingTab {
 			'• <code>MM/DD/YYYY</code> → 05/01/2023<br>' +
 			'The plugin will detect dates in your chosen format.';
 
-		new Setting(containerEl)
+		new obsidian.Setting(containerEl)
 			.setName('Worklog Tag')
 			.setDesc('Files with this tag will be treated as work logs')
 			.addText(text => text
@@ -62,7 +64,7 @@ class WorkLogSettingsTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				}));
 
-		new Setting(containerEl)
+		new obsidian.Setting(containerEl)
 			.setName('Target Files')
 			.setDesc('Files to be treated as work logs (one path per line)')
 			.addTextArea(text => text
@@ -79,14 +81,12 @@ class WorkLogSettingsTab extends PluginSettingTab {
 /**
  * Main plugin class for worklog functionality
  */
-export default class WorkLogPlugin extends Plugin {
-	settings: WorkLogSettings;
-
+class WorkLogPlugin extends obsidian.Plugin {
 	/**
 	 * Loads the plugin and initializes settings, commands, and event handlers
 	 * @returns {Promise<void>}
 	 */
-	async onload(): Promise<void> {
+	async onload() {
 		console.log('Loading worklog plugin');
 
 		try {
@@ -109,13 +109,13 @@ export default class WorkLogPlugin extends Plugin {
 	/**
 	 * Registers plugin commands
 	 */
-	registerCommands(): void {
+	registerCommands() {
 		// Add command to manually add today's date to the current file
 		this.addCommand({
 			id: 'wl-insert-todays-date',
 			name: 'Insert Today\'s Date',
-			checkCallback: (checking: boolean) => {
-				const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+			checkCallback: (checking) => {
+				const view = this.app.workspace.getActiveViewOfType(obsidian.MarkdownView);
 				if (view && view.file) {
 					if (!checking) {
 						this.updateWorkLog(view.file); // No force parameter, only add if not present
@@ -130,8 +130,8 @@ export default class WorkLogPlugin extends Plugin {
 		this.addCommand({
 			id: 'wl-force-insert-todays-date',
 			name: 'Force Insert Today\'s Date',
-			checkCallback: (checking: boolean) => {
-				const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+			checkCallback: (checking) => {
+				const view = this.app.workspace.getActiveViewOfType(obsidian.MarkdownView);
 				if (view && view.file) {
 					if (!checking) {
 						this.updateWorkLog(view.file, true); // Force update
@@ -146,10 +146,10 @@ export default class WorkLogPlugin extends Plugin {
 	/**
 	 * Registers event handlers for file operations
 	 */
-	registerEvents(): void {
+	registerEvents() {
 		// File open event - add date when opening a worklog file
 		this.registerEvent(
-			this.app.workspace.on('file-open', async (file: TFile | null) => {
+			this.app.workspace.on('file-open', async (file) => {
 				try {
 					if (this.settings.autoAddDate && file && await this.isWorkLogFile(file)) {
 						this.updateWorkLog(file);
@@ -162,10 +162,10 @@ export default class WorkLogPlugin extends Plugin {
 
 		// Layout ready event - add date when the app layout is ready
 		this.registerEvent(
-			this.app.workspace.on('layout-change', async () => {
+			this.app.workspace.on('layout-ready', async () => {
 				try {
 					if (this.settings.autoAddDate) {
-						const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+						const activeView = this.app.workspace.getActiveViewOfType(obsidian.MarkdownView);
 						if (activeView && activeView.file && await this.isWorkLogFile(activeView.file)) {
 							this.updateWorkLog(activeView.file);
 						}
@@ -180,10 +180,9 @@ export default class WorkLogPlugin extends Plugin {
 		this.registerEvent(
 			this.app.workspace.on('active-leaf-change', async (leaf) => {
 				try {
-					const view = leaf?.view;
-					if (this.settings.autoAddDate && view instanceof MarkdownView && view.file &&
-						await this.isWorkLogFile(view.file)) {
-						this.updateWorkLog(view.file);
+					if (this.settings.autoAddDate && leaf && leaf.view && leaf.view.file &&
+						await this.isWorkLogFile(leaf.view.file)) {
+						this.updateWorkLog(leaf.view.file);
 					}
 				} catch (error) {
 					console.error("Error in active-leaf-change event handler:", error);
@@ -194,10 +193,10 @@ export default class WorkLogPlugin extends Plugin {
 
 	/**
 	 * Determines if a file should be treated as a worklog file
-	 * @param {TFile} file - The file object to check
+	 * @param {Object} file - The file object to check
 	 * @returns {Promise<boolean>} - True if the file is a worklog file
 	 */
-	async isWorkLogFile(file: TFile): Promise<boolean> {
+	async isWorkLogFile(file) {
 		if (!file) return false;
 
 		// Check if filename equals "worklog" (case insensitive)
@@ -213,7 +212,7 @@ export default class WorkLogPlugin extends Plugin {
 
 		// Check if file has the worklog tag
 		try {
-			const metadata = this.app.metadataCache.getFileCache(file);
+			const metadata = await this.app.metadataCache.getFileCache(file);
 			if (!metadata) return false;
 
 			// Check frontmatter tags
@@ -242,7 +241,7 @@ export default class WorkLogPlugin extends Plugin {
 	 * @param {Date} date - The date to format
 	 * @returns {string} - The formatted date string
 	 */
-	formatDate(date: Date): string {
+	formatDate(date) {
 		if (!date || !(date instanceof Date)) {
 			console.error("Invalid date provided to formatDate");
 			date = new Date(); // Fallback to current date
@@ -262,7 +261,7 @@ export default class WorkLogPlugin extends Plugin {
 			.replace(/dddd/g, dayOfWeek)
 			.replace(/DD/g, day)
 			.replace(/MM/g, month)
-			.replace(/YYYY/g, year.toString());
+			.replace(/YYYY/g, year);
 	}
 
 	/**
@@ -270,7 +269,7 @@ export default class WorkLogPlugin extends Plugin {
 	 * @param {string} dateStr - The date string to parse
 	 * @returns {Date|null} - The parsed Date object or null if parsing failed
 	 */
-	parseDate(dateStr: string): Date | null {
+	parseDate(dateStr) {
 		if (!dateStr || typeof dateStr !== 'string') {
 			console.error("Invalid date string provided to parseDate");
 			return null;
@@ -282,7 +281,7 @@ export default class WorkLogPlugin extends Plugin {
 
 		if (!match) return null;
 
-		let year: string, month: string, day: string;
+		let year, month, day;
 		const format = this.settings.dateFormat;
 
 		try {
@@ -332,13 +331,13 @@ export default class WorkLogPlugin extends Plugin {
 
 	/**
 	 * Updates the worklog file with today's date if needed
-	 * @param {TFile} file - The file to update
+	 * @param {Object} file - The file to update
 	 * @param {boolean} force - Whether to force adding today's date even if it exists
 	 * @returns {Promise<void>}
 	 */
-	async updateWorkLog(file: TFile, force = false): Promise<void> {
+	async updateWorkLog(file, force = false) {
 		try {
-			const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+			const view = this.app.workspace.getActiveViewOfType(obsidian.MarkdownView);
 			if (!view || !view.editor || !file) {
 				console.warn("Cannot update worklog: missing view, editor, or file");
 				return;
@@ -376,7 +375,7 @@ export default class WorkLogPlugin extends Plugin {
 	 * @param {string} formattedDate - The formatted date to add
 	 * @returns {string} - The updated content
 	 */
-	createUpdatedContent(fileContent: string, formattedDate: string): string {
+	createUpdatedContent(fileContent, formattedDate) {
 		// Check if file is empty
 		if (!fileContent.trim()) {
 			return `#worklog\n\n### ${formattedDate}\n- \n`;
@@ -405,11 +404,11 @@ export default class WorkLogPlugin extends Plugin {
 
 	/**
 	 * Positions the cursor after the date heading at the first list item
-	 * @param {Editor} editor - The editor object
+	 * @param {Object} editor - The editor object
 	 * @param {string} content - The content to search in
 	 * @param {string} formattedDate - The date to find
 	 */
-	positionCursorAfterDate(editor: any, content: string, formattedDate: string): void {
+	positionCursorAfterDate(editor, content, formattedDate) {
 		const lines = content.split("\n");
 		const dateLineIndex = lines.findIndex(line => line.includes(formattedDate));
 
@@ -433,7 +432,7 @@ export default class WorkLogPlugin extends Plugin {
 	 * @param {Date} today - Today's date
 	 * @returns {boolean} - True if today's date is found in the content
 	 */
-	hasLatestDate(fileContent: string, today: Date): boolean {
+	hasLatestDate(fileContent, today) {
 		if (!fileContent || !today) {
 			return false;
 		}
@@ -462,7 +461,7 @@ export default class WorkLogPlugin extends Plugin {
 	 * @returns {boolean} - True if today's date is found
 	 * @private
 	 */
-	private checkForParsedDate(fileContent: string, today: Date): boolean {
+	checkForParsedDate(fileContent, today) {
 		// Extract dates using a regex pattern
 		const dateRegex = /(\d{2}|\d{4})[\/\-\.](\d{2})[\/\-\.](\d{2}|\d{4})/g;
 		const matches = [...fileContent.matchAll(dateRegex)];
@@ -475,7 +474,7 @@ export default class WorkLogPlugin extends Plugin {
 		const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
 		// Try to parse each date and find the latest one
-		let latestDate: Date | null = null;
+		let latestDate = null;
 
 		for (const match of matches) {
 			const dateStr = match[0];
@@ -498,7 +497,7 @@ export default class WorkLogPlugin extends Plugin {
 	 * Saves the plugin settings to disk
 	 * @returns {Promise<void>}
 	 */
-	async saveSettings(): Promise<void> {
+	async saveSettings() {
 		try {
 			await this.saveData(this.settings);
 		} catch (error) {
@@ -509,8 +508,10 @@ export default class WorkLogPlugin extends Plugin {
 	/**
 	 * Handles plugin unload
 	 */
-	onunload(): void {
+	onunload() {
 		console.log('Unloading worklog plugin');
 		// Clean up any resources if needed
 	}
 }
+
+module.exports = WorkLogPlugin;

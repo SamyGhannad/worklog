@@ -1,0 +1,78 @@
+name: Build & Release
+
+on:
+    push:
+        branches:
+            - main
+        paths:
+            - "package.json"
+jobs:
+    build-release:
+        runs-on: ubuntu-latest
+        
+        steps:
+            # 1. Check out repository
+            - name: Checkout repository
+              uses: actions/checkout@v4
+            
+            # 2. Set up Node.js
+            - name: Setup Node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 18
+                  cache: "npm"
+            
+            # 3. Install dependencies
+            - name: Install dependencies
+              run: npm ci
+            
+            # 4. Build the project
+            - name: Build
+              run: npm run build
+            
+            # 5. Extract version from package.json
+            - name: Get version from package.json
+              id: get_version
+              run: echo "VERSION=$(node -p \"require('./package.json').version\")" >> $GITHUB_OUTPUT
+            
+            # 6. Create an annotated tag if it does not yet exist
+            - name: Create tag <version>
+              uses: actions/github-script@v7
+              with:
+                  script: |
+                      const version = '${{ steps.get_version.outputs.VERSION }}';
+                      const tag = `${version}`;
+                      const { context, github, core } = require('@actions/github');
+                      
+                      // Check if tag already exists
+                      const { data: matchingRefs } = await github.git.listMatchingRefs({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        ref: `tags/${tag}`,
+                      });
+                      
+                      if (matchingRefs.length === 0) {
+                        await github.git.createRef({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          ref: `refs/tags/${tag}`,
+                          sha: context.sha,
+                        });
+                        core.info(`Created tag ${tag}`);
+                      } else {
+                        core.info(`Tag ${tag} already exists; skipping creation.`);
+                      }
+            
+            # 7. Create GitHub Release and upload assets
+            - name: Create GitHub Release
+              uses: softprops/action-gh-release@v1
+              with:
+                  tag_name: ${{ steps.get_version.outputs.VERSION }}
+                  name: Release ${{ steps.get_version.outputs.VERSION }}
+                  body: |
+                      Automated release for version ${{ steps.get_version.outputs.VERSION }}.
+                  files: |
+                      main.js
+                      manifest.json
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
