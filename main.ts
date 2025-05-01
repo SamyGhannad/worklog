@@ -45,12 +45,22 @@ class WorkLogSettingsTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				}));
 
-		const formatHelp = containerEl.createEl('div', { cls: 'setting-item-description' });
-		formatHelp.innerHTML = 'Examples:<br>' +
-			'• <code>dddd DD-MM-YYYY</code> → Monday 01-05-2023<br>' +
-			'• <code>YYYY-MM-DD dddd</code> → 2023-05-01 Monday<br>' +
-			'• <code>MM/DD/YYYY</code> → 05/01/2023<br>' +
-			'The plugin will detect dates in your chosen format.';
+		const formatHelp = containerEl.createEl('div', {cls: 'setting-item-description'});
+		formatHelp.createSpan({text: 'Examples:'});
+		formatHelp.createEl('br');
+		formatHelp.createSpan({text: '• '});
+		formatHelp.createEl('code', {text: 'dddd DD-MM-YYYY'});
+		formatHelp.createSpan({text: ' → Monday 01-05-2023'});
+		formatHelp.createEl('br');
+		formatHelp.createSpan({text: '• '});
+		formatHelp.createEl('code', {text: 'YYYY-MM-DD dddd'});
+		formatHelp.createSpan({text: ' → 2023-05-01 Monday'});
+		formatHelp.createEl('br');
+		formatHelp.createSpan({text: '• '});
+		formatHelp.createEl('code', {text: 'MM/DD/YYYY'});
+		formatHelp.createSpan({text: ' → 05/01/2023'});
+		formatHelp.createEl('br');
+		formatHelp.createSpan({text: 'The plugin will detect dates in your chosen format.'});
 
 		new Setting(containerEl)
 			.setName('Worklog Tag')
@@ -508,6 +518,7 @@ export default class WorkLogPlugin extends Plugin {
 
 	/**
 	 * Handles plugin unload
+	 * 
 	 */
 	onunload(): void {
 		console.log('Unloading worklog plugin');
