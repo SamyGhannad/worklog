@@ -1,0 +1,21 @@
+version: '3'
+
+tasks:
+    release:
+        desc: Validate version consistency and publish a release
+        cmds:
+            - |
+                set -e
+                
+                PKG_VERSION=$(jq -r '.version' package.json)
+                MF_VERSION=$(jq -r '.version' manifest.json)
+                
+                if [ "$PKG_VERSION" != "$MF_VERSION" ]; then
+                  echo "Error: Version mismatch between package.json ($PKG_VERSION) and manifest.json ($MF_VERSION)"
+                  exit 1
+                fi
+                
+                git tag -a "$MF_VERSION" -m "$MF_VERSION"
+                git push origin "$MF_VERSION"
+                
+                gh release create "$MF_VERSION" --title "$MF_VERSION" main.js manifest.json
